@@ -1,1 +1,129 @@
 
+# Modelo de Regressão Linear — Índice ABCR e PIB
+
+Trabalho de **Ciência da Computação (2º semestre)**
+
+## Integrantes
+
+| Nome | RM |
+|---|---|
+| André Fujinaga | RM569158 |
+| Arthur Machado | RM569919 |
+| Conrado Gracie | RM569157 |
+| Guilherme Belo | RM570079 |
+| Renato Sandreschi | RM569156 |
+
+Este projeto investiga se existe relação entre a **atividade econômica brasileira** (índice de volume do PIB) e o **fluxo de veículos nas rodovias concedidas** (Índice ABCR), usando um modelo de regressão linear simples.
+
+## Objetivo
+
+Estimar o `ABCR_indice` a partir do `PIB_indice`, com dados anuais de **2006 a 2025** (20 anos).
+
+| Item | Descrição |
+|---|---|
+| **X (entrada)** | `PIB_indice` |
+| **y (alvo)** | `ABCR_indice` |
+| **Treino** | 2006–2021 (16 anos) |
+| **Teste** | 2022–2025 (4 anos) |
+
+> A separação é cronológica, sem embaralhamento (`train_test_split` não foi usado), para respeitar a ordem temporal dos dados.
+
+## Estrutura do projeto
+
+```
+├── Modelo_Regressao_Linear_ABCR_PIB.ipynb   # Notebook principal (Google Colab)
+├── dados_abcr_2006_2025.csv                 # Entrada: série anual do Índice ABCR
+└── dados_completos_abcr_pib_2006_2025.csv   # Saída: base final (PIB + ABCR), gerada pelo notebook
+```
+
+> O arquivo `dados_abcr_2006_2025.csv` precisa estar na mesma pasta do notebook (ou ser enviado ao Colab) antes da execução.
+
+## Fontes dos dados
+
+- **PIB:** IBGE/SIDRA, **Tabela 1620** — série encadeada do índice de volume trimestral (base: média 1995 = 100), Brasil, PIB a preços de mercado, sem ajuste sazonal. Os dados são obtidos diretamente pela API do SIDRA. Como a série é trimestral, calcula-se a **média dos quatro trimestres** de cada ano.
+- **Índice ABCR:** fluxo total de veículos em rodovias concedidas.
+  - 2006–2021: série histórica publicada em estudos com dados da ABCR/CNT.
+  - 2022–2025: atualizados a partir dos crescimentos anuais divulgados pela ABCR/Tendências.
+
+## Como executar
+
+1. Abra o notebook no [Google Colab](https://colab.research.google.com/).
+2. Envie o arquivo `dados_abcr_2006_2025.csv` para o ambiente.
+3. Execute todas as células (**Ambiente de execução → Executar tudo**). É necessário acesso à internet para consultar a API do SIDRA.
+
+### Dependências
+
+```
+requests
+pandas
+numpy
+matplotlib
+scikit-learn
+```
+
+## Etapas do notebook
+
+1. Entendimento do problema
+2. Importação das bibliotecas
+3. Coleta do PIB via API do SIDRA
+4. Organização do PIB (média anual dos trimestres)
+5. Leitura do Índice ABCR (CSV)
+6. União das bases por ano
+7. Verificação da base (valores ausentes, 20 linhas)
+8. Gráfico de dispersão PIB × ABCR
+9. Correlação de Pearson
+10. Separação treino/teste
+11. Treinamento da regressão linear
+12. Previsões no conjunto de teste
+13. Avaliação (MAE, MSE e R²)
+14. Gráfico de valores reais × previstos
+15. Exportação da base final
+16. Conclusão
+
+## Resultados
+
+**Correlação de Pearson (PIB × ABCR):** `0,9424` — associação linear positiva forte.
+
+**Equação do modelo (treinado em 2006–2021):**
+
+```
+ABCR = -43,1139 + 1,0708 × PIB
+```
+
+**Previsões no conjunto de teste:**
+
+| Ano | PIB (índice) | ABCR real | ABCR previsto | Erro |
+|---|---|---|---|---|
+| 2022 | 178,05 | 153,87 | 147,54 | 6,33 |
+| 2023 | 183,82 | 163,26 | 153,71 | 9,54 |
+| 2024 | 190,10 | 168,32 | 160,44 | 7,87 |
+| 2025 | 194,45 | 172,52 | 165,10 | 7,42 |
+
+**Métricas de avaliação (teste):**
+
+| Métrica | Valor |
+|---|---|
+| MAE | 7,79 |
+| MSE | 62,05 |
+| R² | -0,28 |
+
+## Interpretação
+
+- Apesar da **correlação alta** (0,94) nos 20 anos, o modelo teve **desempenho fraco no teste**: o R² negativo indica que ele previu pior do que simplesmente usar a média dos valores de teste.
+- O modelo **subestimou** o ABCR em todos os quatro anos de teste (erros sempre positivos). Isso sugere que a relação PIB–ABCR **mudou** após 2021, com o fluxo de veículos crescendo mais do que o PIB explicaria, e que uma reta ajustada em 2006–2021 não extrapola bem para o período seguinte.
+- A base é pequena (20 observações, 4 no teste), o que torna as métricas sensíveis.
+- Correlação e regressão indicam **associação, não causalidade**. Outros fatores também influenciam o fluxo de veículos: preço de combustíveis, renda, produção agrícola, comércio, turismo e infraestrutura.
+
+## Dificuldades e soluções
+
+- **Frequências diferentes** (PIB trimestral, ABCR mensal/anual): uso de números-índice anuais.
+- **Ordem cronológica:** teste definido pelos últimos quatro anos, sem embaralhar.
+- **Pesquisa das fontes:** IBGE/SIDRA para o PIB e ABCR para o fluxo de veículos.
+- **Interpretação:** correlação tratada como associação, não como causa.
+
+## Referências
+
+- IBGE — Contas Nacionais Trimestrais / SIDRA, Tabela 1620
+- ABCR — Índice ABCR
+- CNT — Pesquisa CNT de Rodovias (série histórica do Índice ABCR)
+- Agência iNFRA — resultado anual do Índice ABCR de 2025
